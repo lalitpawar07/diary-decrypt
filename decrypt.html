@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Secure Diary Decryption</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body { font-family: Arial; background:#111; color:#fff; padding:20px; }
+    input, button { padding:10px; width:100%; margin-top:10px; }
+    #output { white-space:pre-wrap; margin-top:20px; background:#222; padding:15px; }
+  </style>
+</head>
+<body>
+
+<h2>📖 Decrypt Diary</h2>
+
+<div id="reader" style="width:100%"></div>
+
+<input type="password" id="password" placeholder="Enter password">
+<button onclick="decryptDiary()">Decrypt</button>
+
+<div id="output"></div>
+
+<script>
+let encryptedText = "";
+
+// 🔑 same key logic as Python
+function generateKey(password) {
+  let sum = 0;
+  for (let c of password) sum += c.charCodeAt(0);
+  return sum % 26;
+}
+
+// 🔓 decrypt
+function decrypt(text, key) {
+  let temp = "";
+  for (let char of text) {
+    if (char >= 'a' && char <= 'z') {
+      temp += String.fromCharCode(
+        (char.charCodeAt(0) - 97 - key + 26) % 26 + 97
+      );
+    } else if (char >= 'A' && char <= 'Z') {
+      temp += String.fromCharCode(
+        (char.charCodeAt(0) - 65 - key + 26) % 26 + 65
+      );
+    } else {
+      temp += char;
+    }
+  }
+  return temp.split("").reverse().join("");
+}
+
+// 📷 QR scanner
+const scanner = new Html5Qrcode("reader");
+scanner.start(
+  { facingMode: "environment" },
+  { fps: 10, qrbox: 250 },
+  qr => {
+    encryptedText = qr;
+    document.getElementById("output").innerText =
+      "✅ QR scanned. Enter password to decrypt.";
+    scanner.stop();
+  }
+);
+
+function decryptDiary() {
+  const password = document.getElementById("password").value;
+  const key = generateKey(password);
+  const result = decrypt(encryptedText, key);
+  document.getElementById("output").innerText = result;
+}
+</script>
+
+</body>
+</html>
