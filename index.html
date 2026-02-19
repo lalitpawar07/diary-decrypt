@@ -137,22 +137,38 @@ button{
 let html5QrCode;
 
 function startScanner(){
+
+    const readerDiv = document.getElementById("reader");
+    readerDiv.innerHTML = "";
+
     html5QrCode = new Html5Qrcode("reader");
 
-    Html5Qrcode.getCameras().then(devices => {
-        if(devices.length){
-            html5QrCode.start(
-                devices[0].id,
-                { fps:10, qrbox:250 },
-                qrMessage => {
-                    document.getElementById("encryptedText").value = qrMessage;
-                    html5QrCode.stop();
-                }
-            );
+    html5QrCode.start(
+        { facingMode: { exact: "environment" } },  // 👈 forces back camera
+        {
+            fps: 10,
+            qrbox: { width: 250, height: 250 }
+        },
+        function(decodedText){
+            document.getElementById("encryptedText").value = decodedText;
+            html5QrCode.stop();
         }
-    }).catch(err=>{
-        alert("Camera access denied or not available.");
-        console.error(err);
+    ).catch(function(err){
+        alert("Back camera not available. Switching camera...");
+        console.log(err);
+
+        // fallback if exact environment fails
+        html5QrCode.start(
+            { facingMode: "environment" },
+            {
+                fps: 10,
+                qrbox: { width: 250, height: 250 }
+            },
+            function(decodedText){
+                document.getElementById("encryptedText").value = decodedText;
+                html5QrCode.stop();
+            }
+        );
     });
 }
 
@@ -205,3 +221,4 @@ function decryptText(){
 
 </body>
 </html>
+
