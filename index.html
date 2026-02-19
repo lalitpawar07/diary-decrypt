@@ -2,33 +2,85 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Unlock Notes</title>
+<title>Secret Decrypt</title>
 
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chilanka&family=Edu+QLD+Beginner:wght@400..700&family=Mali:wght@200..700&display=swap" rel="stylesheet">
+
+<!-- CryptoJS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 body{
-  background:#111;
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background: linear-gradient(to right,#141e30,#243b55);
   color:white;
-  text-align:center;
-  font-family:Arial;
+  font-family:'Mali', cursive;
 }
 
 .container{
-  margin:30px auto;
-  width:90%;
-  max-width:600px;
+  width:70%;
+  height:70vh;
+  display:flex;
+  flex-direction:column;
+  padding:20px;
 }
 
-#reader{
-  width:100%;
-  margin-bottom:20px;
+h2{
+  margin-bottom:15px;
+}
+
+/* Diary Display Box */
+.result-box{
+  flex:1;
+  border-radius:20px;
+  padding:20px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(10px);
+  background-size:cover;
+  background-position:center;
+  overflow:auto;
+  transition: all 0.5s ease;
+}
+
+/* Text content */
+.diary-content{
+  white-space:pre-wrap;
+  background: rgba(0,0,0,0.35);
+  padding:15px;
+  border-radius:15px;
+  backdrop-filter: blur(8px);
+}
+
+input, textarea, button{
+  margin:6px;
+  padding:8px;
+  border-radius:8px;
+  border:none;
 }
 
 textarea{
   width:100%;
   height:120px;
+  resize:none;
+}
+
+button{
+  background:#ffcc70;
+  cursor:pointer;
+}
+
+@media (max-width:768px){
+  .container{
+    width:95%;
+    height:85vh;
+  }
 }
 </style>
 </head>
@@ -36,71 +88,62 @@ textarea{
 <body>
 
 <div class="container">
-<h2>🔓 Unlock Your Diary</h2>
 
-<div id="reader"></div>
+<h2>🔓 Unlock Your Secret</h2>
 
-<textarea id="encryptedText" placeholder="Encrypted text will appear here"></textarea>
-<br>
+<textarea id="encryptedText" placeholder="Paste encrypted text from QR scanner..."></textarea>
 <input type="password" id="password" placeholder="Enter Password">
-<br>
 <button onclick="decryptText()">Decrypt</button>
 
-<h3 id="output"></h3>
+<div class="result-box" id="resultBox">
+  <div class="diary-content" id="resultContent">
+    Your decrypted diary will appear here...
+  </div>
+</div>
 
 </div>
 
 <script>
-function startScanner(){
-    const scanner = new Html5Qrcode("reader");
-
-    scanner.start(
-        { facingMode:"environment" },
-        { fps:10, qrbox:250 },
-        (decodedText)=>{
-            document.getElementById("encryptedText").value = decodedText;
-            scanner.stop();
-        }
-    );
-}
-startScanner();
 
 function decryptText(){
     const encrypted = document.getElementById("encryptedText").value;
     const password = document.getElementById("password").value;
 
-    try{
-        const bytes = CryptoJS.AES.decrypt(encrypted,password);
-        const original = bytes.toString(CryptoJS.enc.Utf8);
+    if(!encrypted || !password){
+        alert("Enter encrypted text and password");
+        return;
+    }
 
-        if(!original){
-            alert("Wrong Password!");
-            document.getElementById("password").value="";
-            document.getElementById("output").innerText="";
-            return;
+    try{
+        const bytes = CryptoJS.AES.decrypt(encrypted, password);
+        const decryptedText = bytes.toString(CryptoJS.enc.Utf8);
+
+        if(!decryptedText){
+            throw "Wrong password";
         }
 
-        const diaryObject = JSON.parse(original);
+        const diaryObject = JSON.parse(decryptedText);
 
-        document.getElementById("output").innerText =
-            diaryObject.emoji + "\n" +
-            diaryObject.time + "\n\n" +
+        const resultBox = document.getElementById("resultBox");
+        const resultContent = document.getElementById("resultContent");
+
+        // Restore background
+        resultBox.className = "result-box " + diaryObject.background;
+
+        // Restore font
+        resultContent.style.fontFamily = diaryObject.font || "'Mali', cursive";
+
+        // Show content
+        resultContent.innerHTML = 
+            diaryObject.emoji + "<br><br>" +
+            diaryObject.time + "<br><br>" +
             diaryObject.text;
 
-        // Apply saved font
-        if(diaryObject.font){
-            document.getElementById("output").style.fontFamily =
-                diaryObject.font;
-        }
-
-        // Apply saved background
-        if(diaryObject.background){
-            document.getElementById("editorBox").style.backgroundImage =
-                diaryObject.background;
-        }
-
-    }catch{
-        alert("Error decrypting");
+    }catch(error){
+        alert("Wrong Password ❌");
+        document.getElementById("password").value = "";
+        document.getElementById("resultContent").innerHTML = 
+            "Your decrypted diary will appear here...";
     }
 }
 
