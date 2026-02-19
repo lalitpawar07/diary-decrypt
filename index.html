@@ -194,31 +194,46 @@ function decryptText(){
         const resultBox = document.getElementById("resultBox");
         const resultContent = document.getElementById("resultContent");
 
-        // Reset previous backgrounds
+        // Reset previous background completely
         resultBox.className = "result-box";
-        if(diary.background){
+        resultBox.style.backgroundImage = "";
+
+        /* 🎨 BACKGROUND HANDLING */
+
+        // If full URL stored
+        if(diary.backgroundUrl){
+            resultBox.style.backgroundImage = diary.backgroundUrl;
+        }
+        // If old class stored (bg1, bg2 etc)
+        else if(diary.background){
             resultBox.classList.add(diary.background);
         }
 
-        // Restore font
+        /* ✍ FONT RESTORE */
         resultContent.style.fontFamily = diary.font || "'Mali', cursive";
 
+        /* 📝 TEXT OUTPUT */
         resultContent.innerHTML =
-            diary.emoji + "<br><br>" +
-            diary.time + "<br><br>" +
-            diary.text;
+            (diary.emoji || "") + "<br><br>" +
+            (diary.time || "") + "<br><br>" +
+            (diary.text || "");
 
     }catch(err){
+
         alert("Wrong Password ❌");
+
         document.getElementById("password").value="";
         document.getElementById("encryptedText").value="";
+
+        const resultBox = document.getElementById("resultBox");
+        resultBox.className = "result-box";
+        resultBox.style.backgroundImage = "";
+
         document.getElementById("resultContent").innerHTML =
             "Your decrypted diary will appear here...";
     }
 }
-
 </script>
 
 </body>
 </html>
-
