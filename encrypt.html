@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Secret Notepad</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chilanka&family=Edu+QLD+Beginner:wght@400..700&family=Mali:wght@200..700&display=swap" rel="stylesheet">
+
+<!-- CryptoJS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+<!-- QR Generator -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background: linear-gradient(to right,#141e30,#243b55);
+  color:white;
+  font-family:'Mali', cursive;
+}
+
+.container{
+  width:70%;
+  height:70vh; /* 🔥 70% of screen height */
+  display:flex;
+  flex-direction:column;
+  padding:20px;
+}
+
+h2{
+  margin-bottom:15px;
+}
+
+.editor-box{
+  flex:1;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(10px);
+  border-radius:20px;
+  padding:15px;
+  display:flex;
+  flex-direction:column;
+
+  background-size:cover;
+  background-position:center;
+ 
+  /* ✨ Smooth fade */
+  transition: background-image 0.6s ease-in-out,
+              background-color 0.6s ease-in-out,
+              opacity 0.4s ease;
+
+}
+
+
+textarea{
+  flex:1;
+  width:95%;
+  border:none;
+  outline:none;
+  resize:none;
+  font-size:18px;
+  padding:15px;
+  border-radius:15px;
+
+  /* ✨ Glass blur effect */
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(2px);
+
+  color:white;
+}
+
+
+
+input, select, button{
+  margin:6px;
+  padding:8px;
+  border-radius:8px;
+  border:none;
+}
+
+button{
+  background:#ffcc70;
+  cursor:pointer;
+}
+
+#qrcode{
+  margin-top:15px;
+  padding:10px;
+  background:white;
+  display:inline-block;
+  border-radius:10px;
+}
+#qrcode canvas{
+  display:block;
+}
+
+
+/* 📱 Mobile Optimization */
+@media (max-width:768px){
+  .container{
+    width:95%;
+    height:85vh;
+  }
+}
+
+/* Background Preview Gallery */
+.bg-gallery{
+  display:flex;
+  gap:12px;
+  margin:10px 0;
+}
+
+.bg-option{
+  width:70px;
+  height:70px;
+  border-radius:12px;
+  cursor:pointer;
+  background-size:cover;
+  background-position:center;
+  border:3px solid transparent;
+  transition:0.3s;
+}
+
+.bg-option:hover{
+  transform:scale(1.08);
+}
+
+.bg-option.active{
+  border:3px solid #ffcc70;
+}
+
+/* 10 Predefined Backgrounds */
+.bg1{ background-image:url('https://i.pinimg.com/736x/49/d1/2a/49d12aa14b220ea25658097467c7e0fd.jpg'); } /* Ocean */
+.bg2{ background-image:url('https://images.unsplash.com/photo-1501785888041-af3ef285b470'); } /* Mountains */
+.bg3{ background-image:url('https://images.unsplash.com/photo-1493244040629-496f6d136cc3'); } /* Forest */
+.bg4{ background-image:url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e'); } /* Night Sky */
+.bg5{ background-image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee'); } /* Sunset */
+.bg6{ background-image:url('https://images.unsplash.com/photo-1519681393784-d120267933ba'); } /* Aesthetic Desk */
+.bg7{ background-image:url('https://images.unsplash.com/photo-1482192596544-9eb780fc7f66'); } /* Rain Window */
+.bg8{ background-image:url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6'); } /* Flowers */
+.bg9{ background-image:url('https://images.unsplash.com/photo-1500534314209-a25ddb2bd429'); } /* Paper Texture */
+.bg10{ background-image:url('https://images.unsplash.com/photo-1505761671935-60b3a7427bad'); } /* Calm Gradient */
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+<h2>✨ Your Secret Space</h2>
+
+<div class="editor-box" id="editorBox">
+
+<input type="text" id="emoji" placeholder="Emoji (mood)">
+<textarea id="diaryText" placeholder="Write what your heart cannot say aloud..."></textarea>
+<input type="password" id="password" placeholder="Set Password">
+
+</div>
+
+<!-- Font Selector -->
+<select onchange="changeFont(this.value)">
+  <option value="'Mali', cursive">Mali</option>
+  <option value="'Chilanka', cursive">Chilanka</option>
+  <option value="'Edu QLD Beginner', cursive">Edu QLD Beginner</option>
+</select>
+
+<!-- Text Color Selector -->
+<select onchange="changeTextColor(this.value)">
+  <option value="white">White Text</option>
+  <option value="black">Black Text</option>
+</select>
+
+<p>Select Background:</p>
+<div class="bg-gallery">
+  <div class="bg-option bg1" onclick="selectBG(this,'bg1')"></div>
+  <div class="bg-option bg2" onclick="selectBG(this,'bg2')"></div>
+  <div class="bg-option bg3" onclick="selectBG(this,'bg3')"></div>
+  <div class="bg-option bg4" onclick="selectBG(this,'bg4')"></div>
+  <div class="bg-option bg5" onclick="selectBG(this,'bg5')"></div>
+  <div class="bg-option bg6" onclick="selectBG(this,'bg6')"></div>
+  <div class="bg-option bg7" onclick="selectBG(this,'bg7')"></div>
+  <div class="bg-option bg8" onclick="selectBG(this,'bg8')"></div>
+  <div class="bg-option bg9" onclick="selectBG(this,'bg9')"></div>
+  <div class="bg-option bg10" onclick="selectBG(this,'bg10')"></div>
+</div>
+
+
+
+<br>
+
+<button onclick="encryptText()">🔐 Encrypt & Generate QR</button>
+
+<div id="qrcode"></div>
+<br>
+<button onclick="downloadQR()">⬇ Download QR</button>
+
+</div>
+
+<script>
+
+function changeFont(font){
+  document.getElementById("diaryText").style.fontFamily = font;
+}
+
+function uploadBackground(event){
+  const reader = new FileReader();
+  reader.onload = function(){
+      document.getElementById("editorBox").style.backgroundImage = `url(${reader.result})`;
+  }
+  reader.readAsDataURL(event.target.files[0]);
+}
+
+function encryptText(){
+    const text = document.getElementById("diaryText").value;
+    const password = document.getElementById("password").value;
+    const emoji = document.getElementById("emoji").value;
+    const font = document.getElementById("diaryText").style.fontFamily || "'Mali', cursive";
+    const background = selectedBG;
+
+
+    if(!text || !password){
+        alert("Please enter text and password");
+        return;
+    }
+
+    const now = new Date();
+    const timestamp = now.toLocaleString();
+
+    const diaryObject = {
+        emoji: emoji,
+        time: timestamp,
+        text: text,
+        font: font,
+        background: background
+    };
+
+    const encrypted = CryptoJS.AES.encrypt(
+        JSON.stringify(diaryObject),
+        password
+    ).toString();
+
+    const qrContainer = document.getElementById("qrcode");
+    qrContainer.innerHTML = "";
+
+    try {
+        new QRCode(qrContainer, {
+            text: encrypted,
+            width: 250,
+            height: 250,
+            correctLevel: QRCode.CorrectLevel.H
+        });
+    } catch (error) {
+        alert("QR generation failed. Check console.");
+        console.error(error);
+    }
+}
+
+
+
+function downloadQR(){
+    const qrCanvas = document.querySelector("#qrcode canvas");
+    if(!qrCanvas){
+        alert("Generate QR first!");
+        return;
+    }
+
+    const moodInput = document.getElementById("emoji").value.trim();
+
+    // Default name if empty
+    let filename = moodInput ? moodInput : "SecretDiary";
+
+    // Remove unsafe filename characters
+    filename = filename.replace(/[^a-zA-Z0-9]/g, "_");
+
+    const link = document.createElement("a");
+    link.download = filename + ".png";
+    link.href = qrCanvas.toDataURL();
+    link.click();
+}
+
+
+function changeTextColor(color){
+  const textarea = document.getElementById("diaryText");
+  textarea.style.color = color;
+}
+
+
+
+let selectedBG = "";
+
+function selectBG(element, bgClass){
+    const editor = document.getElementById("editorBox");
+
+    // Remove active border
+    document.querySelectorAll(".bg-option").forEach(el=>{
+        el.classList.remove("active");
+    });
+
+    element.classList.add("active");
+
+    // Fade out
+    editor.style.opacity = "0.6";
+
+    setTimeout(() => {
+        editor.classList.remove(
+            "bg1","bg2","bg3","bg4","bg5",
+            "bg6","bg7","bg8","bg9","bg10"
+        );
+
+        editor.classList.add(bgClass);
+        editor.style.opacity = "1";
+    }, 200);
+
+    selectedBG = bgClass;
+}
+
+
+
+
+</script>
+
+</body>
+</html>
