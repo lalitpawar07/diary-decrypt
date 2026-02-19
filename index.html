@@ -75,13 +75,35 @@ function decryptText(){
 
         if(!original){
             alert("Wrong Password!");
-        }else{
-            document.getElementById("output").innerText = original;
+            document.getElementById("password").value="";
+            document.getElementById("output").innerText="";
+            return;
         }
+
+        const diaryObject = JSON.parse(original);
+
+        document.getElementById("output").innerText =
+            diaryObject.emoji + "\n" +
+            diaryObject.time + "\n\n" +
+            diaryObject.text;
+
+        // Apply saved font
+        if(diaryObject.font){
+            document.getElementById("output").style.fontFamily =
+                diaryObject.font;
+        }
+
+        // Apply saved background
+        if(diaryObject.background){
+            document.getElementById("editorBox").style.backgroundImage =
+                diaryObject.background;
+        }
+
     }catch{
         alert("Error decrypting");
     }
 }
+
 </script>
 
 </body>
