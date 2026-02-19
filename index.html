@@ -1,72 +1,86 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Secure Diary Decryption</title>
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <style>
-    body { font-family: Arial; background:#111; color:#fff; padding:20px; }
-    input, button { padding:10px; width:100%; margin-top:10px; }
-    #output { white-space:pre-wrap; margin-top:20px; background:#222; padding:15px; }
-  </style>
+<meta charset="UTF-8">
+<title>Unlock Notes</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+body{
+  background:#111;
+  color:white;
+  text-align:center;
+  font-family:Arial;
+}
+
+.container{
+  margin:30px auto;
+  width:90%;
+  max-width:600px;
+}
+
+#reader{
+  width:100%;
+  margin-bottom:20px;
+}
+
+textarea{
+  width:100%;
+  height:120px;
+}
+</style>
 </head>
+
 <body>
 
-<h2>📖 Decrypt Diary</h2>
+<div class="container">
+<h2>🔓 Unlock Your Diary</h2>
 
-<div id="reader" style="width:100%"></div>
+<div id="reader"></div>
 
-<input type="password" id="password" placeholder="Enter password">
-<button onclick="decryptDiary()">Decrypt</button>
+<textarea id="encryptedText" placeholder="Encrypted text will appear here"></textarea>
+<br>
+<input type="password" id="password" placeholder="Enter Password">
+<br>
+<button onclick="decryptText()">Decrypt</button>
 
-<div id="output"></div>
+<h3 id="output"></h3>
+
+</div>
 
 <script>
-let encryptedText = "";
+function startScanner(){
+    const scanner = new Html5Qrcode("reader");
 
-// 🔑 same key logic as Python
-function generateKey(password) {
-  let sum = 0;
-  for (let c of password) sum += c.charCodeAt(0);
-  return sum % 26;
+    scanner.start(
+        { facingMode:"environment" },
+        { fps:10, qrbox:250 },
+        (decodedText)=>{
+            document.getElementById("encryptedText").value = decodedText;
+            scanner.stop();
+        }
+    );
 }
+startScanner();
 
-// 🔓 decrypt
-function decrypt(text, key) {
-  let temp = "";
-  for (let char of text) {
-    if (char >= 'a' && char <= 'z') {
-      temp += String.fromCharCode(
-        (char.charCodeAt(0) - 97 - key + 26) % 26 + 97
-      );
-    } else if (char >= 'A' && char <= 'Z') {
-      temp += String.fromCharCode(
-        (char.charCodeAt(0) - 65 - key + 26) % 26 + 65
-      );
-    } else {
-      temp += char;
+function decryptText(){
+    const encrypted = document.getElementById("encryptedText").value;
+    const password = document.getElementById("password").value;
+
+    try{
+        const bytes = CryptoJS.AES.decrypt(encrypted,password);
+        const original = bytes.toString(CryptoJS.enc.Utf8);
+
+        if(!original){
+            alert("Wrong Password!");
+        }else{
+            document.getElementById("output").innerText = original;
+        }
+    }catch{
+        alert("Error decrypting");
     }
-  }
-  return temp.split("").reverse().join("");
-}
-
-// 📷 QR scanner
-const scanner = new Html5Qrcode("reader");
-scanner.start(
-  { facingMode: "environment" },
-  { fps: 10, qrbox: 250 },
-  qr => {
-    encryptedText = qr;
-    document.getElementById("output").innerText =
-      "✅ QR scanned. Enter password to decrypt.";
-    scanner.stop();
-  }
-);
-
-function decryptDiary() {
-  const password = document.getElementById("password").value;
-  const key = generateKey(password);
-  const result = decrypt(encryptedText, key);
-  document.getElementById("output").innerText = result;
 }
 </script>
 
