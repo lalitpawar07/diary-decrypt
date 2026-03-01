@@ -2,12 +2,12 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Simple Secret Diary</title>
+<title>Secret Notepad</title>
 
-<!-- CryptoJS -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mali&display=swap" rel="stylesheet">
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
-<!-- QR Generator -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <style>
@@ -18,28 +18,28 @@ body{
   justify-content:center;
   align-items:center;
   background: linear-gradient(to right,#141e30,#243b55);
-  font-family: Arial;
   color:white;
+  font-family:'Mali', cursive;
 }
 
 .container{
   width:90%;
-  max-width:600px;
+  max-width:700px;
   display:flex;
   flex-direction:column;
 }
 
 textarea{
-  height:200px;
-  padding:10px;
-  border-radius:10px;
-  border:none;
+  height:250px;
   resize:none;
+  padding:15px;
+  border-radius:15px;
+  border:none;
   font-size:16px;
   margin-bottom:10px;
 }
 
-input{
+input,button{
   padding:10px;
   border-radius:10px;
   border:none;
@@ -47,62 +47,84 @@ input{
 }
 
 button{
-  padding:10px;
-  border:none;
-  border-radius:10px;
   background:#ffcc70;
   cursor:pointer;
 }
 
 #qrcode{
-  margin-top:20px;
+  margin-top:15px;
   background:white;
-  padding:15px;
-  border-radius:10px;
+  padding:10px;
+  border-radius:15px;
   display:inline-block;
 }
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
-<h2>🔐 Write & Encrypt</h2>
+<h2>🔐 Encrypt Your Secret</h2>
 
-<textarea id="text" placeholder="Write 4–5 paragraphs here..."></textarea>
-<input type="password" id="password" placeholder="Enter Password">
+<textarea id="diaryText" placeholder="Write 4–5 paragraphs safely..."></textarea>
+<input type="password" id="password" placeholder="Set Password">
+
 <button onclick="encryptText()">Generate QR</button>
 
 <div id="qrcode"></div>
+<button onclick="downloadQR()">⬇ Download QR</button>
 
 </div>
 
 <script>
-
 function encryptText(){
-    const text = document.getElementById("text").value;
-    const password = document.getElementById("password").value;
+
+    const text = document.getElementById("diaryText").value.trim();
+    const password = document.getElementById("password").value.trim();
 
     if(!text || !password){
         alert("Enter text and password");
         return;
     }
 
-    // 🔥 Only store text
-    const encrypted = CryptoJS.AES.encrypt(text, password).toString();
+    const data = {
+        text: text,
+        time: new Date().toLocaleString()
+    };
+
+    const encrypted = CryptoJS.AES.encrypt(
+        JSON.stringify(data),
+        password
+    ).toString();
+
+    if(encrypted.length > 2500){
+        alert("Text too large for QR. Reduce a little.");
+        return;
+    }
 
     const qrContainer = document.getElementById("qrcode");
     qrContainer.innerHTML = "";
 
     new QRCode(qrContainer, {
         text: encrypted,
-        width: 400,   // 🔥 bigger QR
-        height: 400,
-        correctLevel: QRCode.CorrectLevel.L  // 🔥 lowest correction = max capacity
+        width: 380,
+        height: 380,
+        correctLevel: QRCode.CorrectLevel.L
     });
 }
 
+function downloadQR(){
+    const canvas = document.querySelector("#qrcode canvas");
+    if(!canvas){
+        alert("Generate QR first!");
+        return;
+    }
+
+    const link = document.createElement("a");
+    link.download = "SecretDiary.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+}
 </script>
 
 </body>
