@@ -139,7 +139,7 @@ function encryptText(){
         time: new Date().toLocaleString(),
         text: text,
         font: font,
-        backgroundUrl: selectedBG
+
     };
 
     try{
@@ -160,9 +160,9 @@ function encryptText(){
         // 5️⃣ Generate QR with MEDIUM error correction
         new QRCode(qrContainer, {
             text: encrypted,
-            width: 220,
-            height: 220,
-            correctLevel: QRCode.CorrectLevel.M
+            width: 350,
+            height: 350,
+            correctLevel: QRCode.CorrectLevel.L
         });
 
     }catch(err){
@@ -218,3 +218,4 @@ function downloadQR(){
 </script>
 </body>
 </html>
+
