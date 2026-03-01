@@ -120,12 +120,18 @@ function downloadQR(){
         return;
     }
 
+    // Create sharp image
+    const imgData = canvas.toDataURL("image/png", 1.0);
+
     const link = document.createElement("a");
-    link.download = "SecretDiary.png";
-    link.href = canvas.toDataURL("image/png");
+    link.href = imgData;
+    link.download = "SecretDiary_QR.png";
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
 }
 </script>
 
 </body>
 </html>
+
