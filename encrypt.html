@@ -2,10 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Secret Notepad</title>
-
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Chilanka&family=Edu+QLD+Beginner:wght@400..700&family=Mali:wght@200..700&display=swap" rel="stylesheet">
+<title>Simple Secret Diary</title>
 
 <!-- CryptoJS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
@@ -13,11 +10,7 @@
 <!-- QR Generator -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-<!-- Compression Library -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
-
 <style>
-/* --- SAME DESIGN (shortened for clarity, you can keep yours) --- */
 body{
   margin:0;
   height:100vh;
@@ -25,61 +18,48 @@ body{
   justify-content:center;
   align-items:center;
   background: linear-gradient(to right,#141e30,#243b55);
+  font-family: Arial;
   color:white;
-  font-family:'Mali', cursive;
 }
 
 .container{
   width:90%;
-  max-width:900px;
-  height:85vh;
+  max-width:600px;
   display:flex;
   flex-direction:column;
-}
-
-.editor-box{
-  flex:1;
-  background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(10px);
-  border-radius:20px;
-  padding:15px;
-  display:flex;
-  flex-direction:column;
-  background-size:cover;
-  background-position:center;
 }
 
 textarea{
-  flex:1;
+  height:200px;
+  padding:10px;
+  border-radius:10px;
   border:none;
-  outline:none;
   resize:none;
-  font-size:18px;
-  padding:15px;
-  border-radius:15px;
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(4px);
-  color:white;
+  font-size:16px;
+  margin-bottom:10px;
 }
 
-button,input,select{
-  margin:6px 0;
-  padding:8px;
-  border-radius:8px;
+input{
+  padding:10px;
+  border-radius:10px;
   border:none;
+  margin-bottom:10px;
 }
 
 button{
+  padding:10px;
+  border:none;
+  border-radius:10px;
   background:#ffcc70;
   cursor:pointer;
 }
 
 #qrcode{
-  margin-top:10px;
-  padding:10px;
+  margin-top:20px;
   background:white;
-  display:inline-block;
+  padding:15px;
   border-radius:10px;
+  display:inline-block;
 }
 </style>
 </head>
@@ -88,134 +68,42 @@ button{
 
 <div class="container">
 
-<h2>✨ Your Secret Space</h2>
+<h2>🔐 Write & Encrypt</h2>
 
-<div class="editor-box" id="editorBox">
-<input type="text" id="emoji" placeholder="Emoji (mood)">
-<textarea id="diaryText" placeholder="Write what your heart cannot say aloud..."></textarea>
-<input type="password" id="password" placeholder="Set Password">
-</div>
-
-<p>Custom Background URL:</p>
-<input type="text" id="bgUrlInput" placeholder="https://example.com/image.jpg">
-<button onclick="applyCustomBG()">Apply Background</button>
-
-<button onclick="encryptText()">🔐 Encrypt & Generate QR</button>
+<textarea id="text" placeholder="Write 4–5 paragraphs here..."></textarea>
+<input type="password" id="password" placeholder="Enter Password">
+<button onclick="encryptText()">Generate QR</button>
 
 <div id="qrcode"></div>
-<button onclick="downloadQR()">⬇ Download QR</button>
 
 </div>
 
 <script>
 
-let selectedBG = "";
-
-function applyCustomBG(){
-    const url = document.getElementById("bgUrlInput").value.trim();
-    if(!url){
-        alert("Enter background URL");
-        return;
-    }
-
-    document.getElementById("editorBox").style.backgroundImage = `url('${url}')`;
-    selectedBG = url; // store clean URL only
-}
-
 function encryptText(){
-
-    const text = document.getElementById("diaryText").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const emoji = document.getElementById("emoji").value.trim();
-    const font = document.getElementById("diaryText").style.fontFamily || "'Mali', cursive";
+    const text = document.getElementById("text").value;
+    const password = document.getElementById("password").value;
 
     if(!text || !password){
         alert("Enter text and password");
         return;
     }
 
-    const diaryObject = {
-        emoji: emoji,
-        time: new Date().toLocaleString(),
-        text: text,
-        font: font,
+    // 🔥 Only store text
+    const encrypted = CryptoJS.AES.encrypt(text, password).toString();
 
-    };
+    const qrContainer = document.getElementById("qrcode");
+    qrContainer.innerHTML = "";
 
-    try{
-
-        // 1️⃣ Convert to JSON
-        const jsonData = JSON.stringify(diaryObject);
-
-        // 2️⃣ Compress
-        const compressed = pako.deflate(jsonData, { to: 'string' });
-
-        // 3️⃣ Encrypt compressed data
-        const encrypted = CryptoJS.AES.encrypt(compressed, password).toString();
-
-        // 4️⃣ Clear old QR
-        const qrContainer = document.getElementById("qrcode");
-        qrContainer.innerHTML = "";
-
-        // 5️⃣ Generate QR with MEDIUM error correction
-        new QRCode(qrContainer, {
-            text: encrypted,
-            width: 350,
-            height: 350,
-            correctLevel: QRCode.CorrectLevel.L
-        });
-
-    }catch(err){
-        alert("QR too large! Try reducing text size.");
-        console.error(err);
-    }
-}
-
-function downloadQR(){
-
-    const canvas = document.querySelector("#qrcode canvas");
-    if(!canvas){
-        alert("Generate QR first");
-        return;
-    }
-
-    const image = canvas.toDataURL("image/png");
-
-    // Open in new tab
-    const newTab = window.open();
-    newTab.document.write(`
-        <html>
-        <head>
-            <title>Save QR</title>
-            <style>
-                body{
-                    margin:0;
-                    display:flex;
-                    justify-content:center;
-                    align-items:center;
-                    height:100vh;
-                    background:black;
-                }
-                img{
-                    max-width:90%;
-                }
-                p{
-                    position:absolute;
-                    top:10px;
-                    color:white;
-                    font-family:sans-serif;
-                }
-            </style>
-        </head>
-        <body>
-            <p>Long press image to save to gallery</p>
-            <img src="${image}">
-        </body>
-        </html>
-    `);
+    new QRCode(qrContainer, {
+        text: encrypted,
+        width: 400,   // 🔥 bigger QR
+        height: 400,
+        correctLevel: QRCode.CorrectLevel.L  // 🔥 lowest correction = max capacity
+    });
 }
 
 </script>
+
 </body>
 </html>
-
