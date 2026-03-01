@@ -104,15 +104,15 @@ function scanFile(input){
     const file = input.files[0];
     if(!file) return;
 
-    const qr = new Html5Qrcode("reader");
+    const html5QrCode = new Html5Qrcode("reader");
 
-    qr.scanFile(file, true)
-      .then(decodedText=>{
-          document.getElementById("encryptedText").value = decodedText;
-      })
-      .catch(err=>{
-          alert("QR not detected in image");
-      });
+    html5QrCode.scanFile(file, false)
+        .then(decodedText => {
+            document.getElementById("encryptedText").value = decodedText;
+        })
+        .catch(err => {
+            alert("QR not clear. Try zooming or retaking screenshot.");
+        });
 }
 
 function decryptText(){
@@ -145,3 +145,4 @@ function decryptText(){
 
 </body>
 </html>
+
