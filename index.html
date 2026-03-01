@@ -2,17 +2,9 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Unlock Secret Diary</title>
+<title>Decrypt Diary</title>
 
-<!-- Google Fonts -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chilanka&family=Edu+QLD+Beginner:wght@400..700&family=Mali:wght@200..700&display=swap" rel="stylesheet">
-
-<!-- CryptoJS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
-<!-- QR Scanner -->
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
@@ -23,90 +15,51 @@ body{
   justify-content:center;
   align-items:center;
   background: linear-gradient(to right,#141e30,#243b55);
+  font-family: Arial;
   color:white;
-  font-family:'Mali', cursive;
 }
 
 .container{
-  width:70%;
-  height:85vh;
+  width:90%;
+  max-width:600px;
   display:flex;
   flex-direction:column;
-  padding:20px;
-}
-
-h2{
-  margin-bottom:10px;
-}
-
-#reader{
-  width:100%;
-  margin-bottom:10px;
-  border-radius:15px;
-  overflow:hidden;
 }
 
 textarea{
-  width:100%;
-  height:100px;
-  resize:none;
-  border-radius:10px;
+  height:120px;
   padding:10px;
-  margin:5px 0;
+  border-radius:10px;
+  border:none;
+  resize:none;
+  margin-bottom:10px;
 }
 
-input, button{
-  margin:5px 0;
-  padding:8px;
-  border-radius:8px;
+input{
+  padding:10px;
+  border-radius:10px;
   border:none;
+  margin-bottom:10px;
 }
 
 button{
+  padding:10px;
+  border:none;
+  border-radius:10px;
   background:#ffcc70;
   cursor:pointer;
 }
 
-/* Diary Display Box */
-.result-box{
-  flex:1;
-  margin-top:10px;
-  border-radius:20px;
-  padding:20px;
+#reader{
+  margin-bottom:10px;
+}
+
+.result{
+  margin-top:15px;
   background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(10px);
-  background-size:cover;
-  background-position:center;
-  overflow:auto;
-  transition: all 0.6s ease;
-}
-
-/* Text Glass Effect */
-.diary-content{
-  white-space:pre-wrap;
-  background: rgba(0,0,0,0.35);
   padding:15px;
-  border-radius:15px;
-  backdrop-filter: blur(8px);
-}
-
-/* Same Background Classes (MUST match encryption page) */
-.bg1{ background-image:url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e'); }
-.bg2{ background-image:url('https://images.unsplash.com/photo-1501785888041-af3ef285b470'); }
-.bg3{ background-image:url('https://images.unsplash.com/photo-1493244040629-496f6d136cc3'); }
-.bg4{ background-image:url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e'); }
-.bg5{ background-image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee'); }
-.bg6{ background-image:url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e'); }
-.bg7{ background-image:url('https://images.unsplash.com/photo-1506744038136-46273834b3fb'); }
-.bg8{ background-image:url('https://images.unsplash.com/photo-1492724441997-5dc865305da7'); }
-.bg9{ background-image:url('https://images.unsplash.com/photo-1500534623283-312aade485b7'); }
-.bg10{ background-image:url('https://images.unsplash.com/photo-1505761671935-60b3a7427bad'); }
-
-@media (max-width:768px){
-  .container{
-    width:95%;
-    height:95vh;
-  }
+  border-radius:10px;
+  white-space:pre-wrap;
 }
 </style>
 </head>
@@ -115,21 +68,16 @@ button{
 
 <div class="container">
 
-<h2>🔓 Unlock Your Secret</h2>
+<h2>🔓 Decrypt</h2>
 
-<button onclick="startScanner()">📷 Scan QR</button>
- <input type="file" id="qrUpload" accept="image/*">
+<button onclick="startScanner()">Scan QR</button>
 <div id="reader"></div>
 
-<textarea id="encryptedText" placeholder="Or paste encrypted text here..."></textarea>
+<textarea id="encryptedText" placeholder="Or paste encrypted text"></textarea>
 <input type="password" id="password" placeholder="Enter Password">
 <button onclick="decryptText()">Decrypt</button>
 
-<div class="result-box" id="resultBox">
-  <div class="diary-content" id="resultContent">
-    Your decrypted diary will appear here...
-  </div>
-</div>
+<div class="result" id="result"></div>
 
 </div>
 
@@ -137,54 +85,23 @@ button{
 
 let html5QrCode;
 
-/* 📷 CAMERA SCAN */
 function startScanner(){
-
-    const readerDiv = document.getElementById("reader");
-    readerDiv.innerHTML = "";
-
+    document.getElementById("reader").innerHTML="";
     html5QrCode = new Html5Qrcode("reader");
 
     html5QrCode.start(
         { facingMode: "environment" },
-        {
-            fps: 10,
-            qrbox: { width: 250, height: 250 }
-        },
+        { fps:10, qrbox:250 },
         function(decodedText){
             document.getElementById("encryptedText").value = decodedText;
             html5QrCode.stop();
         }
-    ).catch(err => {
-        alert("Camera not available");
-        console.log(err);
-    });
+    );
 }
 
-/* 📂 GALLERY UPLOAD SCAN */
-document.getElementById("qrUpload").addEventListener("change", function(e){
-
-    const file = e.target.files[0];
-    if(!file) return;
-
-    const tempScanner = new Html5Qrcode("reader");
-
-    tempScanner.scanFile(file, true)
-    .then(decodedText => {
-        document.getElementById("encryptedText").value = decodedText;
-    })
-    .catch(err => {
-        alert("QR not readable");
-        console.log(err);
-    });
-});
-
-
-/* 🔓 DECRYPT FUNCTION */
 function decryptText(){
-
-    const encrypted = document.getElementById("encryptedText").value.trim();
-    const password = document.getElementById("password").value.trim();
+    const encrypted = document.getElementById("encryptedText").value;
+    const password = document.getElementById("password").value;
 
     if(!encrypted || !password){
         alert("Enter encrypted text and password");
@@ -192,60 +109,9 @@ function decryptText(){
     }
 
     try{
-
         const bytes = CryptoJS.AES.decrypt(encrypted, password);
         const decrypted = bytes.toString(CryptoJS.enc.Utf8);
 
-        if(!decrypted){
-            throw "Wrong password";
-        }
+        if(!decrypted) throw "error";
 
-        const diary = JSON.parse(decrypted);
-
-        const resultBox = document.getElementById("resultBox");
-        const resultContent = document.getElementById("resultContent");
-
-        /* RESET */
-        resultBox.className = "result-box";
-        resultBox.style.backgroundImage = "";
-
-        /* 🎨 BACKGROUND RESTORE */
-
-        if(diary.backgroundUrl){
-            resultBox.style.backgroundImage = diary.backgroundUrl;
-        }
-        else if(diary.background){
-            resultBox.classList.add(diary.background);
-        }
-
-        /* ✍ RESTORE FONT */
-        resultContent.style.fontFamily = diary.font || "'Mali', cursive";
-
-        /* 📝 SAFE TEXT OUTPUT */
-        resultContent.textContent =
-            (diary.emoji || "") + "\n\n" +
-            (diary.time || "") + "\n\n" +
-            (diary.text || "");
-
-    }
-    catch(err){
-
-        alert("Wrong Password ❌");
-
-        document.getElementById("password").value="";
-        document.getElementById("encryptedText").value="";
-
-        const resultBox = document.getElementById("resultBox");
-        resultBox.className = "result-box";
-        resultBox.style.backgroundImage = "";
-
-        document.getElementById("resultContent").textContent =
-            "Your decrypted diary will appear here...";
-    }
-}
-
-</script>
-
-</body>
-</html>
-
+        document.getElementById("result").innerText = decrypted
