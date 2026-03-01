@@ -120,12 +120,21 @@ function downloadQR(){
         return;
     }
 
-    // Create sharp image
+    // Ask user for file name
+    let fileName = prompt("Enter title for saved image:");
+
+    if(!fileName || fileName.trim() === ""){
+        fileName = "SecretDiary_QR";
+    }
+
+    // Remove spaces and special characters
+    fileName = fileName.replace(/[^a-z0-9]/gi, "_");
+
     const imgData = canvas.toDataURL("image/png", 1.0);
 
     const link = document.createElement("a");
     link.href = imgData;
-    link.download = "SecretDiary_QR.png";
+    link.download = fileName + ".png";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -134,4 +143,5 @@ function downloadQR(){
 
 </body>
 </html>
+
 
