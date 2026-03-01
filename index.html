@@ -2,7 +2,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Decrypt Diary</title>
+<title>Unlock Secret Diary</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mali&display=swap" rel="stylesheet">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
@@ -15,27 +18,31 @@ body{
   justify-content:center;
   align-items:center;
   background: linear-gradient(to right,#141e30,#243b55);
-  font-family: Arial;
   color:white;
+  font-family:'Mali', cursive;
 }
 
 .container{
   width:90%;
-  max-width:600px;
+  max-width:700px;
   display:flex;
   flex-direction:column;
 }
 
-textarea{
-  height:120px;
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  resize:none;
+#reader{
   margin-bottom:10px;
 }
 
-input{
+textarea{
+  height:100px;
+  resize:none;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  margin-bottom:10px;
+}
+
+input,button{
   padding:10px;
   border-radius:10px;
   border:none;
@@ -43,38 +50,32 @@ input{
 }
 
 button{
-  padding:10px;
-  border:none;
-  border-radius:10px;
   background:#ffcc70;
   cursor:pointer;
 }
 
-#reader{
-  margin-bottom:10px;
-}
-
 .result{
   margin-top:15px;
-  background: rgba(0,0,0,0.5);
   padding:15px;
-  border-radius:10px;
+  background:rgba(0,0,0,0.5);
+  border-radius:15px;
   white-space:pre-wrap;
 }
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
-<h2>🔓 Decrypt</h2>
+<h2>🔓 Decrypt Your Secret</h2>
 
-<button onclick="startScanner()">Scan QR</button>
+<button onclick="startScanner()">📷 Scan QR</button>
 <div id="reader"></div>
 
-<textarea id="encryptedText" placeholder="Or paste encrypted text"></textarea>
+<input type="file" accept="image/*" onchange="scanFile(this)">
+<textarea id="encryptedText" placeholder="Or paste encrypted text..."></textarea>
 <input type="password" id="password" placeholder="Enter Password">
+
 <button onclick="decryptText()">Decrypt</button>
 
 <div class="result" id="result"></div>
@@ -92,16 +93,32 @@ function startScanner(){
     html5QrCode.start(
         { facingMode: "environment" },
         { fps:10, qrbox:250 },
-        function(decodedText){
+        (decodedText)=>{
             document.getElementById("encryptedText").value = decodedText;
             html5QrCode.stop();
         }
     );
 }
 
+function scanFile(input){
+    const file = input.files[0];
+    if(!file) return;
+
+    const qr = new Html5Qrcode("reader");
+
+    qr.scanFile(file, true)
+      .then(decodedText=>{
+          document.getElementById("encryptedText").value = decodedText;
+      })
+      .catch(err=>{
+          alert("QR not detected in image");
+      });
+}
+
 function decryptText(){
-    const encrypted = document.getElementById("encryptedText").value;
-    const password = document.getElementById("password").value;
+
+    const encrypted = document.getElementById("encryptedText").value.trim();
+    const password = document.getElementById("password").value.trim();
 
     if(!encrypted || !password){
         alert("Enter encrypted text and password");
@@ -114,4 +131,17 @@ function decryptText(){
 
         if(!decrypted) throw "error";
 
-        document.getElementById("result").innerText = decrypted
+        const data = JSON.parse(decrypted);
+
+        document.getElementById("result").innerHTML =
+            data.time + "\n\n" + data.text;
+
+    }catch{
+        alert("Wrong Password ❌");
+        document.getElementById("result").innerHTML="";
+    }
+}
+</script>
+
+</body>
+</html>
