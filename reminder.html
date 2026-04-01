@@ -72,7 +72,7 @@
   <label>Reminder (minutes before)</label>
   <input type="number" id="reminder" placeholder="e.g. 10" value="10">
 
-  <button onclick="createEvent()">Set Reminder</button>
+  <button onclick="createCalendarEvent()">Set Reminder</button>
 </div>
 
 <script>
@@ -80,7 +80,7 @@ function formatDateTime(date, time) {
   return date.replace(/-/g, "") + "T" + time.replace(":", "") + "00";
 }
 
-function createEvent() {
+function createCalendarEvent {
   const title = document.getElementById("title").value;
   const desc = document.getElementById("desc").value;
   const date = document.getElementById("date").value;
