@@ -76,11 +76,8 @@
 </div>
 
 <script>
-function formatDateTime(date, time) {
-  return date.replace(/-/g, "") + "T" + time.replace(":", "") + "00";
-}
-
 function createCalendarEvent() {
+
   const title = document.getElementById("title").value;
   const desc = document.getElementById("desc").value;
   const date = document.getElementById("date").value;
@@ -92,14 +89,9 @@ function createCalendarEvent() {
     return;
   }
 
-  function formatDateTime(date, time) {
-    return date.replace(/-/g, "") + "T" + time.replace(":", "") + "00";
-  }
+  const start = date.replace(/-/g, "") + "T" + startTime.replace(":", "") + "00";
+  const end = date.replace(/-/g, "") + "T" + endTime.replace(":", "") + "00";
 
-  const start = formatDateTime(date, startTime);
-  const end = formatDateTime(date, endTime);
-
-  // ✅ IMPORTANT: NO LINE BREAKS
   const url = "https://calendar.google.com/calendar/render?action=TEMPLATE"
     + "&text=" + encodeURIComponent(title)
     + "&details=" + encodeURIComponent(desc)
@@ -109,6 +101,5 @@ function createCalendarEvent() {
   window.open(url, "_blank");
 }
 </script>
-
 </body>
 </html>
